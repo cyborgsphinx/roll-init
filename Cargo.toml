@@ -1,0 +1,7 @@
+[package]
+name = "roll-init"
+version = "0.1.0"
+authors = ["James Hannah <jhannah8124@gmail.com>"]
+
+[dependencies]
+linefeed = "0.3"
