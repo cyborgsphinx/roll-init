@@ -62,15 +62,15 @@ impl FromStr for Creature {
     // parse from format of <name>, <init>
     // ignore everything else
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let v: Vec<&str> = s.split(", ").collect();
-        if v.len() > 2 {
+        let v: Vec<&str> = s.split_whitespace().collect();
+        if v.len() < 2 {
             return Err(CreatureError::TooFewArgs)
         }
         let init = match v[1].parse() {
             Ok(val) => val,
             Err(e) => return Err(CreatureError::Int(e)),
         };
-        Ok(Creature::new(v[0], init))
+        Ok(Creature::new(v[0].trim_matches(','), init))
     }
 }
 
