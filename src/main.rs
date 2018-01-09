@@ -16,6 +16,11 @@ const HELP_MSG: &'static str = "[a]dd - add a creature
 
 const MAIN_PROMPT: &'static str = "> ";
 
+enum Action {
+    Break,
+    Continue,
+}
+
 fn main() {
     println!("Welcome to roll-init");
     println!("use \"?\" to display possible actions");
@@ -24,39 +29,49 @@ fn main() {
     reader.set_prompt(MAIN_PROMPT);
     while let Ok(res) = reader.read_line() {
         match res {
-            ReadResult::Input(input) => { //{order.insert(inp.parse().unwrap());},
-                match input.to_lowercase().as_ref() {
-                    "a" | "add" => {
-                        add_creature(&mut reader, &mut order);
-                    },
-                    "c" | "clear" => {
-                        order.clear();
-                    },
-                    "d" | "delete" => {
-                        order.delete_current();
-                    },
-                    "n" | "next" => {
-                        if let Some(creature) = order.get_next() {
-                            println!("{}", creature);
-                        }
-                    },
-                    "p" | "print" => {
-                        for creature in order.iter() {
-                            println!("{}", creature);
-                        }
-                    },
-                    "q" | "quit" => {
-                        break;
-                    },
-                    "?" => {
-                        println!("{}", HELP_MSG);
-                    }
-                    _ => {}, // do nothing
+            ReadResult::Input(input) => {
+                match dispatch(input.to_lowercase().as_ref(), &mut reader, &mut order) {
+                    Action::Break => break,
+                    _ => {},
                 }
             },
             _ => break,
         }
     }
+}
+
+fn dispatch<T: Terminal>(input: &str, mut reader: &mut Reader<T>, mut order: &mut InitOrder) -> Action {
+    match input {
+        "a" | "add" => {
+            add_creature(&mut reader, &mut order);
+        },
+        "c" | "clear" => {
+            order.clear();
+        },
+        "d" | "delete" => {
+            order.delete_current();
+        },
+        "n" | "next" => {
+            if let Some(creature) = order.get_next() {
+                println!("{}", creature);
+            } else {
+                println!("Unable to get next creature");
+            }
+        },
+        "p" | "print" => {
+            for creature in order.iter() {
+                println!("{}", creature);
+            }
+        },
+        "q" | "quit" => {
+            return Action::Break;
+        },
+        "?" => {
+            println!("{}", HELP_MSG);
+        }
+        _ => {}, // do nothing
+    }
+    Action::Continue
 }
 
 fn add_creature<T: Terminal>(reader: &mut Reader<T>, order: &mut InitOrder) {
