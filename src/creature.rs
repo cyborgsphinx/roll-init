@@ -85,6 +85,9 @@ impl FromStr for Creature {
 
 impl Display for Creature {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
-        f.write_fmt(format_args!("{}", self.name))
+        match self.bonus {
+            Some(val) => f.write_fmt(format_args!("{}, {}, {}", self.name, self.initiative, val)),
+            None => f.write_fmt(format_args!("{}, {}", self.name, self.initiative)),
+        }
     }
 }
