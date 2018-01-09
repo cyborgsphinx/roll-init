@@ -67,6 +67,5 @@ impl<'a> InitOrder {
     }
     
     pub fn unhold(&mut self, _name: &str ) {
-        ;
     }
 }

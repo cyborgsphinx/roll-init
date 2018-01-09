@@ -8,24 +8,24 @@ pub struct Creature {
     name: String,
     initiative: usize,
     // used as a tie breaker, does not make an initiative of 15 suddenly beat an initiative of 21
-    bonus: usize
+    bonus: Option<isize>,
 }
 
 impl<'a> Creature {
     pub fn new<T: ToString>(creature_name: T, init: usize) -> Self {
-        Creature { name: creature_name.to_string(), initiative: init, bonus: 0 }
+        Creature { name: creature_name.to_string(), initiative: init, bonus: None }
     }
 
-    pub fn with_modifier<T: ToString>(creature_name: T, init: usize, modifier: usize) -> Self {
-        Creature { name: creature_name.to_string(), initiative: init, bonus: modifier }
+    pub fn with_modifier<T: ToString>(creature_name: T, init: usize, modifier: isize) -> Self {
+        Creature { name: creature_name.to_string(), initiative: init, bonus: Some(modifier) }
     }
 
     pub fn name(&'a self) -> &'a str {
         &self.name
     }
 
-    pub fn increment(&mut self, bonus: usize) {
-        self.bonus += bonus;
+    pub fn increment(&mut self, bonus: isize) {
+        self.bonus = Some(self.bonus.unwrap_or(0) + bonus);
     }
 }
 
@@ -59,18 +59,27 @@ pub enum CreatureError {
 impl FromStr for Creature {
     type Err = CreatureError;
 
-    // parse from format of <name>, <init>
+    // parse from format of <name>,? <init>(,? <modifier>)?
     // ignore everything else
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let v: Vec<&str> = s.split_whitespace().collect();
         if v.len() < 2 {
             return Err(CreatureError::TooFewArgs)
         }
-        let init = match v[1].parse() {
+        let name = v[0].trim_matches(',');
+        let init = match v[1].trim_matches(',').parse() {
             Ok(val) => val,
             Err(e) => return Err(CreatureError::Int(e)),
         };
-        Ok(Creature::new(v[0].trim_matches(','), init))
+        if v.len() > 2 {
+            let modifier = match v[2].trim_matches(',').parse() {
+                Ok(val) => val,
+                Err(e) => return Err(CreatureError::Int(e)),
+            };
+            Ok(Creature::with_modifier(name, init, modifier))
+        } else {
+            Ok(Creature::new(name, init))
+        }
     }
 }
 
